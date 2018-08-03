@@ -53,9 +53,13 @@ function Invoke-TervisProgisticsShip {
         $PostalCode,
         $Residential,
         $Phone,
+        $service,
+        $consigneeReference,
         $WeightInLBs
     )
-    $ConsigneeParameters = $PSBoundParameters | ConvertFrom-PSBoundParameters -ExcludeProperty WeightInLBs -AsHashTable
+    $ConsigneeParameters = $PSBoundParameters | 
+    ConvertFrom-PSBoundParameters -ExcludeProperty WeightInLBs,consigneeReference,service -AsHashTable
+
     $ShipRequest = New-Object Progistics.ShipRequest -Property @{
         service = "TANDATA_FEDEXFSMS.FEDEX.SP_PS"
         defaults = New-Object Progistics.DataDictionary
@@ -64,7 +68,7 @@ function Invoke-TervisProgisticsShip {
                 consignee = New-Object Progistics.NameAddress -Property (
                     $ConsigneeParameters + @{countryCode = "US"}
                 )
-                consigneeReference = "TBSF-RETURNS"
+                consigneeReference = $consigneeReference
                 shipper = "TERVIS"
                 terms = "SHIPPER"
                 weight = New-Object Progistics.weight -Property @{
@@ -78,4 +82,36 @@ function Invoke-TervisProgisticsShip {
     
     Invoke-ProgisticsAPI -MethodName Ship -Parameter $ShipRequest
     #$Proxy = Get-ProgisticsWebServiceProxy
+}
+
+function Get-ReturnsShipmentService {
+    param (
+        $WeightInLB
+    )
+    if ($WeightInLB -lt 1) {
+        "CONNECTSHIP_ENDICIA.USPS.FIRST"
+    } elseif ($WeightInLB -ge 1 -and $WeightInLB -le 10) {
+        "TANDATA_FEDEXFSMS.FEDEX.SP_STD"
+    } elseif ($WeightInLB -gt 10) {
+        "TANDATA_FEDEXFSMS.FEDEX.FHD"
+    }
+
+}
+
+function Invoke-TervisProgisticsReturnsShip {
+    param (
+        $Company,
+        $Address1,
+        $Address2,
+        $City,
+        $StateProvince,
+        $PostalCode,
+        $Residential,
+        $Phone,
+        $WeightInLBs
+    )
+    $WeightrangeToCarrierAndServiceMapping = @{
+
+    }
+    Invoke-TervisProgisticsShip @PSBoundParameters -consigneeReference "TBSF-RETURNS"
 }

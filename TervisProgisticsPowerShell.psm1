@@ -1,14 +1,14 @@
 function Set-TervisProgisticsEnvironment {
     param (
-        $EnvironmentName
+        $Name
     )
-    Get-TervisApplicationNode -ApplicationName Progistics -EnvironmentName $EnvironmentName |
+    Get-TervisApplicationNode -ApplicationName Progistics -EnvironmentName $Name |
     Set-ProgisticsComputerName
 }
 
 function Test-TervisProgisticsPowershell {
     ipmo -force ProgisticsPowerShell, TervisProgisticsPowerShell
-    Set-TervisProgisticsEnvironment -EnvironmentName Delta
+    Set-TervisProgisticsEnvironment -Name Delta
 }
 
 function Test-ProgisticsAPI {
@@ -43,3 +43,39 @@ function Test-ProgisticsAPI {
     $Result.result.resultData
 }
 
+function Invoke-TervisProgisticsShip {
+    param (
+        $Company,
+        $Address1,
+        $Address2,
+        $City,
+        $StateProvince,
+        $PostalCode,
+        $Residential,
+        $Phone,
+        $WeightInLBs
+    )
+    $ConsigneeParameters = $PSBoundParameters | ConvertFrom-PSBoundParameters -ExcludeProperty WeightInLBs -AsHashTable
+    $ShipRequest = New-Object Progistics.ShipRequest -Property @{
+        service = "TANDATA_FEDEXFSMS.FEDEX.SP_PS"
+        defaults = New-Object Progistics.DataDictionary
+        packages = [Progistics.DataDictionary[]]@(
+            New-Object Progistics.DataDictionary -Property @{
+                consignee = New-Object Progistics.NameAddress -Property (
+                    $ConsigneeParameters + @{countryCode = "US"}
+                )
+                consigneeReference = "TBSF-RETURNS"
+                shipper = "TERVIS"
+                terms = "SHIPPER"
+                weight = New-Object Progistics.weight -Property @{
+                    unit = "LB"
+                    amount = $WeightInLBs
+                }
+                shipdate = (Get-Date)
+            }
+        )
+    }
+    
+    Invoke-ProgisticsAPI -MethodName Ship -Parameter $ShipRequest
+    #$Proxy = Get-ProgisticsWebServiceProxy
+}

@@ -126,19 +126,6 @@ function Invoke-TervisProgisticsPrint {
         $PSBoundParameters + @{
             shipper = "TERVIS"
             document = "TANDATA_FEDEXFSMS_SP_LABEL.STANDARD"
-            #itemList = New-Object Progistics.PrintItemList -Property @{
-            #    items = New-Object Progistics.PrintItem -Property @{
-            #        ItemElementName = "msn"
-            #        Item = "101320160"
-            #    }
-            #}
-            #itemList = New-Object Progistics.PrintItemList -Property @{
-            #    items = @("101320160")
-            #    ItemsElementName = @([Progistics.ItemsChoiceType]::msn)
-            #}
-            #itemList = New-Object Progistics.PrintItemList -Property @{
-            #    msn = "101320160"
-            #}
             itemList = New-Object Progistics.PrintItemList -Property @{
                 items = [System.Object[]]@(101320160)
                 ItemsElementName = [Progistics.ItemsChoiceType[]]@([Progistics.ItemsChoiceType]::msn)

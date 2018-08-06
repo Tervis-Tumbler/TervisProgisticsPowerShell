@@ -61,7 +61,7 @@ function Invoke-TervisProgisticsShip {
     ConvertFrom-PSBoundParameters -ExcludeProperty WeightInLBs,consigneeReference,service -AsHashTable
 
     $ShipRequest = New-Object Progistics.ShipRequest -Property @{
-        service = "TANDATA_FEDEXFSMS.FEDEX.SP_PS"
+        service = $service
         defaults = New-Object Progistics.DataDictionary
         packages = [Progistics.DataDictionary[]]@(
             New-Object Progistics.DataDictionary -Property @{
@@ -81,7 +81,6 @@ function Invoke-TervisProgisticsShip {
     }
     
     Invoke-ProgisticsAPI -MethodName Ship -Parameter $ShipRequest
-    #$Proxy = Get-ProgisticsWebServiceProxy
 }
 
 function Get-ReturnsShipmentService {
@@ -95,7 +94,6 @@ function Get-ReturnsShipmentService {
     } elseif ($WeightInLB -gt 10) {
         "TANDATA_FEDEXFSMS.FEDEX.FHD"
     }
-
 }
 
 function Invoke-TervisProgisticsReturnsShip {
@@ -110,8 +108,47 @@ function Invoke-TervisProgisticsReturnsShip {
         $Phone,
         $WeightInLBs
     )
-    $WeightrangeToCarrierAndServiceMapping = @{
+    $Service = Get-ReturnsShipmentService -WeightInLB $WeightInLBs
+    Invoke-TervisProgisticsShip @PSBoundParameters -consigneeReference "TBSF-RETURNS" -service $Service
+}
 
-    }
-    Invoke-TervisProgisticsShip @PSBoundParameters -consigneeReference "TBSF-RETURNS"
+function Invoke-TervisProgisticsPrint {
+    param (
+        $Carrier,
+        #$Shiper,
+        #$Document,
+        $MSN
+        #$Output
+    )
+    $PSBoundParameters.Remove("MSN") | Out-Null
+    $PSBoundParameters.Remove("StockSymbol") | Out-Null
+    $PrintRequest = New-Object Progistics.PrintRequest -Property (
+        $PSBoundParameters + @{
+            shipper = "TERVIS"
+            document = "TANDATA_FEDEXFSMS_SP_LABEL.STANDARD"
+            #itemList = New-Object Progistics.PrintItemList -Property @{
+            #    items = New-Object Progistics.PrintItem -Property @{
+            #        ItemElementName = "msn"
+            #        Item = "101320160"
+            #    }
+            #}
+            #itemList = New-Object Progistics.PrintItemList -Property @{
+            #    items = @("101320160")
+            #    ItemsElementName = @([Progistics.ItemsChoiceType]::msn)
+            #}
+            #itemList = New-Object Progistics.PrintItemList -Property @{
+            #    msn = "101320160"
+            #}
+            itemList = New-Object Progistics.PrintItemList -Property @{
+                items = [System.Object[]]@(101320160)
+                ItemsElementName = [Progistics.ItemsChoiceType[]]@([Progistics.ItemsChoiceType]::msn)
+            }
+            
+            stock = New-Object Progistics.StockDescriptor -Property @{
+                symbol = "STANDARD_4_8_STOCK"
+            }
+        }
+    )
+
+    Invoke-ProgisticsAPI -MethodName Print -Parameter $PrintRequest
 }

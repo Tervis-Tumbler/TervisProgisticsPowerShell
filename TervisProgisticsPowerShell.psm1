@@ -117,7 +117,7 @@ function Invoke-TervisProgisticsPrint {
         $Carrier,
         #$Shiper,
         #$Document,
-        $MSN
+        [int]$MSN
         #$Output
     )
     $PSBoundParameters.Remove("MSN") | Out-Null
@@ -127,7 +127,7 @@ function Invoke-TervisProgisticsPrint {
             shipper = "TERVIS"
             document = "TANDATA_FEDEXFSMS_SP_LABEL.STANDARD"
             itemList = New-Object Progistics.PrintItemList -Property @{
-                items = [System.Object[]]@(101320160)
+                items = [System.Object[]]@($MSN)
                 ItemsElementName = [Progistics.ItemsChoiceType[]]@([Progistics.ItemsChoiceType]::msn)
             }
             

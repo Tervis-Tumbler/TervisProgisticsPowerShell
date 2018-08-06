@@ -45,20 +45,20 @@ function Test-ProgisticsAPI {
 
 function Invoke-TervisProgisticsShip {
     param (
-        $Company,
-        $Address1,
-        $Address2,
-        $City,
-        $StateProvince,
-        $PostalCode,
-        $Residential,
-        $Phone,
-        $service,
+        [Parameter(ValueFromPipelineByPropertyName)]$Company,
+        [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$Address1,
+        [Parameter(ValueFromPipelineByPropertyName)]$Address2,
+        [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$City,
+        [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$StateProvince,
+        [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$PostalCode,
+        [Parameter(ValueFromPipelineByPropertyName)]$Residential,
+        [Parameter(ValueFromPipelineByPropertyName)]$Phone,
+        [Parameter(Mandatory)]$service,
         $consigneeReference,
-        $WeightInLBs
+        [Parameter(Mandatory)]$WeightInLB
     )
     $ConsigneeParameters = $PSBoundParameters | 
-    ConvertFrom-PSBoundParameters -ExcludeProperty WeightInLBs,consigneeReference,service -AsHashTable
+    ConvertFrom-PSBoundParameters -ExcludeProperty WeightInLB,consigneeReference,service -AsHashTable
 
     $ShipRequest = New-Object Progistics.ShipRequest -Property @{
         service = $service
@@ -73,7 +73,7 @@ function Invoke-TervisProgisticsShip {
                 terms = "SHIPPER"
                 weight = New-Object Progistics.weight -Property @{
                     unit = "LB"
-                    amount = $WeightInLBs
+                    amount = $WeightInLB
                 }
                 shipdate = (Get-Date)
             }
@@ -98,17 +98,17 @@ function Get-ReturnsShipmentService {
 
 function Invoke-TervisProgisticsReturnsShip {
     param (
-        $Company,
-        $Address1,
-        $Address2,
-        $City,
-        $StateProvince,
-        $PostalCode,
-        $Residential,
-        $Phone,
-        $WeightInLBs
+        [Parameter(ValueFromPipelineByPropertyName)]$Company,
+        [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$Address1,
+        [Parameter(ValueFromPipelineByPropertyName)]$Address2,
+        [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$City,
+        [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$StateProvince,
+        [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$PostalCode,
+        [Parameter(ValueFromPipelineByPropertyName)]$Residential,
+        [Parameter(ValueFromPipelineByPropertyName)]$Phone,
+        [Parameter(Mandatory)]$WeightInLB
     )
-    $Service = Get-ReturnsShipmentService -WeightInLB $WeightInLBs
+    $Service = Get-ReturnsShipmentService -WeightInLB $WeightInLB
     Invoke-TervisProgisticsShip @PSBoundParameters -consigneeReference "TBSF-RETURNS" -service $Service
 }
 
@@ -117,20 +117,26 @@ function Invoke-TervisProgisticsPrint {
         $Carrier,
         #$Shiper,
         #$Document,
-        [int]$MSN
-        #$Output
+        [int]$MSN,
+        $Output
     )
-    $PSBoundParameters.Remove("MSN") | Out-Null
-    $PSBoundParameters.Remove("StockSymbol") | Out-Null
+    "MSN","StockSymbol","Output" | 
+    ForEach-Object {$PSBoundParameters.Remove($_) | Out-Null}
+
+    $CarrierToStandardDocumentMap = @{
+        "TANDATA_FEDEXFSMS.FEDEX" = "TANDATA_FEDEXFSMS_SP_LABEL.STANDARD"
+        "CONNECTSHIP_ENDICIA.USPS" = "CONNECTSHIP_ENDICIA_LABEL.STANDARD"
+    }
+
     $PrintRequest = New-Object Progistics.PrintRequest -Property (
         $PSBoundParameters + @{
             shipper = "TERVIS"
-            document = "TANDATA_FEDEXFSMS_SP_LABEL.STANDARD"
+            document = $CarrierToStandardDocumentMap.$Carrier
             itemList = New-Object Progistics.PrintItemList -Property @{
                 items = [System.Object[]]@($MSN)
                 ItemsElementName = [Progistics.ItemsChoiceType[]]@([Progistics.ItemsChoiceType]::msn)
             }
-            
+            output = $Output
             stock = New-Object Progistics.StockDescriptor -Property @{
                 symbol = "STANDARD_4_8_STOCK"
             }

@@ -56,14 +56,22 @@ function Get-TervisProgisticsPackageWarrantyOrderService {
 
 function Invoke-TervisProgisticsPackagePrintWarrantyOrder {
     param (
-        $Carrier,
-        [int]$MSN,
+        [Parameter(Mandatory)]$Carrier,
+        [Parameter(Mandatory)][int]$MSN,
+        [Parameter(Mandatory)]$TrackingNumber,
         $Output
     )
-    $CarrierToStandardDocumentMap = @{
-        "TANDATA_FEDEXFSMS.FEDEX" = "TANDATA_FEDEXFSMS_SP_LABEL.STANDARD"
-        "CONNECTSHIP_ENDICIA.USPS" = "CONNECTSHIP_ENDICIA_LABEL.STANDARD"
+
+    $Service = Find-ProgisticsPackage -carrier $Carrier -TrackingNumber $TrackingNumber |
+    Select-Object -ExpandProperty ResultData |
+    Select-Object -ExpandProperty ResultData |
+    Select-Object -ExpandProperty Service
+
+    $ServiceToStandardDocumentMap = @{
+        "TANDATA_FEDEXFSMS.FEDEX.SP_PS" = "TANDATA_FEDEXFSMS_SP_LABEL.STANDARD"
+        "CONNECTSHIP_ENDICIA.USPS.FIRST" = "CONNECTSHIP_ENDICIA_LABEL.STANDARD"
+        "TANDATA_FEDEXFSMS.FEDEX.FHD" = "TANDATA_FEDEXFSMS_GROUNDLABEL.STANDARD"
     }
 
-    Invoke-ProgisticsPackagePrint @PSBoundParameters -Document $CarrierToStandardDocumentMap.$Carrier -Shipper "TERVIS" -StockSymbol "THERMAL_LABEL_8" #"STANDARD_4_8_STOCK"
+    Invoke-ProgisticsPackagePrint @PSBoundParameters -Document $ServiceToStandardDocumentMap.$Service -Shipper "TERVIS" -StockSymbol "THERMAL_LABEL_8" #"STANDARD_4_8_STOCK"
 }

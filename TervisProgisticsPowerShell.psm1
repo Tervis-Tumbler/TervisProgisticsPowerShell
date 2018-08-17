@@ -9,6 +9,7 @@ function Set-TervisProgisticsEnvironment {
 function New-TervisProgisticsPackageShipmentWarrantyOrder {
     param (
         [Parameter(ValueFromPipelineByPropertyName)]$Company,
+        [Parameter(ValueFromPipelineByPropertyName)]$Contact,
         [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$Address1,
         [Parameter(ValueFromPipelineByPropertyName)]$Address2,
         [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$City,
@@ -25,6 +26,7 @@ function New-TervisProgisticsPackageShipmentWarrantyOrder {
 function New-TervisProgisticsPackageShipment {
     param (
         [Parameter(ValueFromPipelineByPropertyName)]$Company,
+        [Parameter(ValueFromPipelineByPropertyName)]$Contact,
         [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$Address1,
         [Parameter(ValueFromPipelineByPropertyName)]$Address2,
         [Parameter(ValueFromPipelineByPropertyName,Mandatory)]$City,

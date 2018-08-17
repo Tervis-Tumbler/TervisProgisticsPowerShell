@@ -37,7 +37,12 @@ function New-TervisProgisticsPackageShipment {
         $Service
     )
     $PSBoundParameters.Remove("WeightInLB") | Out-Null
-    New-ProgisticsPackageShipment @PSBoundParameters -Shipper "TERVIS" -Terms "SHIPPER" -CountryCode "US" -WeightUnit "LB" -Weight $WeightInLB -ShipDate (Get-Date)
+    $WCSShipDates = Get-WCSShipDate
+    $ShipDate = $WCSShipDates |
+    Where-Object {$Service -match $_.carrierId} |
+    Select-Object -ExpandProperty shipDate
+
+    New-ProgisticsPackageShipment @PSBoundParameters -Shipper "TERVIS" -Terms "SHIPPER" -CountryCode "US" -WeightUnit "LB" -Weight $WeightInLB -ShipDate $ShipDate
 }
 
 function Get-TervisProgisticsPackageWarrantyOrderService {

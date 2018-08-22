@@ -39,7 +39,7 @@ function New-TervisProgisticsPackageShipment {
         $Service
     )
     $PSBoundParameters.Remove("WeightInLB") | Out-Null
-    $WCSShipDates = Get-WCSShipDate
+    $WCSShipDates = Get-WCSShipDate -EnvironmentName Production
     $ShipDate = $WCSShipDates |
     Where-Object {$Service -match $_.carrierId} |
     Select-Object -ExpandProperty shipDate

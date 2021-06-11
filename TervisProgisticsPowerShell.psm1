@@ -51,15 +51,14 @@ function Get-TervisProgisticsPackageWarrantyOrderService {
     param (
         $WeightInLB
     )
-    if ($WeightInLB -lt 1) {
-        "CONNECTSHIP_ENDICIA.USPS.FIRST"
-    } elseif ($WeightInLB -ge 1 -and $WeightInLB -le 10) {
-        "TANDATA_FEDEXFSMS.FEDEX.SP_PS"
-    } elseif ($WeightInLB -gt 10) {
-        "TANDATA_FEDEXFSMS.FEDEX.FHD"
+
+    switch ([system.decimal]::Parse($WeightInLB)) {
+        {$_ -lt 1}  { return "CONNECTSHIP_ENDICIA.USPS.FIRST" }
+        {$_ -le 10} { return "TANDATA_FEDEXFSMS.FEDEX.SP_PS" }
+        {$_ -gt 10} { return "TANDATA_FEDEXFSMS.FEDEX.FHD" }
+        Default     { throw "Weight input error"}
     }
 }
-
 
 function Invoke-TervisProgisticsPackagePrintWarrantyOrder {
     param (
